@@ -8,6 +8,9 @@
 
 import Foundation
 
+// created the items that will go into the vending machine
+// instead of using strings we are using an enum to eliminate
+// typing errors that comes with using "string" variables
 enum VendingSelection {
     case soda
     case dietSoda
@@ -28,6 +31,9 @@ protocol VendingItem {
     var quantity: Int { get set }
 }
 
+// Created the vending machine so that it's flexible for the future
+// if we want to create a vending machine that sells electronic, these protocols
+// are flexible enough to do that
 protocol VendingMachine {
     var selection: [VendingSelection] { get }
     var invetory: [VendingSelection: VendingItem] { get set }
