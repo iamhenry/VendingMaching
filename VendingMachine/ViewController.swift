@@ -22,6 +22,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     let vendingMaching: VendingMachine
     
     var currentSelection: VendingSelection?
+    var quantity = 1
     
     required init?(coder aDecoder: NSCoder) {
         do {
@@ -65,6 +66,22 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         
         collectionView.collectionViewLayout = layout
     }
+    
+    // MARK: - Vending Machine
+    @IBAction func purchase(_ sender: Any) {
+        
+        // quick way to unwrap an optional and assign it to currentSelection
+        if let currentSelection = currentSelection {
+            do {
+                try vendingMaching.vend(selection: currentSelection, quantity: quantity)
+            } catch {
+                // FIXME: Error handling code
+            }
+        } else {
+            // FIXME: Alert user to no selection
+        }
+    }
+    
     
     // MARK: UICollectionViewDataSource
     
