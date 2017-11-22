@@ -49,6 +49,15 @@ struct Item: VendingItem {
     var quantity: Int
 }
 
+class PlistConverter {
+    // static is a type method
+    static func dictionary(fromFile name: String, ofType type: String) throws -> [String: AnyObject] {
+        guard let path = Bundle.main.path(forResource: name, ofType: type) else {
+            
+    }
+    }
+}
+
 // Provide implentation for the vending maching from the protocols we created above
 class FoodVendingMachine: VendingMachine {
     let selection: [VendingSelection] = [.soda, .dietSoda, .wrap, .chips, .cookie, .sandwich,. candyBar, .popTart, .water, .fruitJuice, .sportsDrink, .gum]

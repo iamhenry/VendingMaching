@@ -100,12 +100,13 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 0910;
 				ORGANIZATIONNAME = "Treehouse Island, Inc";
 				TargetAttributes = {
 					9771F6B01DF0833300B2B06D = {
 						CreatedOnToolsVersion = 8.1;
 						DevelopmentTeam = R9E84DX62H;
+						LastSwiftMigration = 0910;
 						ProvisioningStyle = Automatic;
 					};
 				};
