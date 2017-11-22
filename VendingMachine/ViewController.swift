@@ -41,7 +41,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         setupCollectionViewCells()
-        print(vendingMaching.invetory)
+        print(vendingMaching.inventory)
     }
 
     override func didReceiveMemoryWarning() {
