@@ -18,18 +18,17 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     @IBOutlet weak var balanceLabel: UILabel!
     @IBOutlet weak var quantityLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
+    @IBOutlet weak var quantityStepper: UIStepper!
     
-    let vendingMaching: VendingMachine
     
+    let vendingMachine: VendingMachine
     var currentSelection: VendingSelection?
-    var quantity = 1
     
     required init?(coder aDecoder: NSCoder) {
         do {
             let dictionary = try PlistConverter.dictionary(fromFile: "VendingInventory", ofType: "plist")
-            
             let inventory = try InventoryUnarchiver.vendingInventory(fromDictionary: dictionary)
-            self.vendingMaching = FoodVendingMachine(inventory: inventory)
+            self.vendingMachine = FoodVendingMachine(inventory: inventory)
         } catch let error {
             fatalError("\(error)")
         }
@@ -37,24 +36,21 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         super.init(coder: aDecoder)
     }
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         setupCollectionViewCells()
         
-        balanceLabel.text = "$\(vendingMaching.amountDeposited)"
-        totalLabel.text = "$00.00"
-        priceLabel.text = "0.00"
+        updateDisplayWith(balance: vendingMachine.amountDeposited, totalPrice: 0, itemPrice: 0, itemQuantity: 1)
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
     // MARK: - Setup
-
+    
     func setupCollectionViewCells() {
         let layout = UICollectionViewFlowLayout()
         layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
@@ -71,44 +67,69 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     }
     
     // MARK: - Vending Machine
-    @IBAction func purchase(_ sender: Any) {
-        
-        // quick way to unwrap an optional and assign it to currentSelection
+    
+    @IBAction func purchase() {
         if let currentSelection = currentSelection {
             do {
-                try vendingMaching.vend(selection: currentSelection, quantity: quantity)
-                updateDisplay()
+                try vendingMachine.vend(selection: currentSelection, quantity: Int(quantityStepper.value))
+                updateDisplayWith(balance: vendingMachine.amountDeposited, totalPrice: 0.0, itemPrice: 0, itemQuantity: 1)
             } catch {
                 // FIXME: Error handling code
             }
+            
             if let indexPath = collectionView.indexPathsForSelectedItems?.first {
                 collectionView.deselectItem(at: indexPath, animated: true)
                 updateCell(having: indexPath, selected: false)
             }
+            
         } else {
             // FIXME: Alert user to no selection
         }
     }
     
-    func updateDisplay() {
-        balanceLabel.text = "$\(vendingMaching.amountDeposited)"
+    func updateDisplayWith(balance: Double? = nil, totalPrice: Double? = nil, itemPrice: Double? = nil, itemQuantity: Int? = nil) {
         
-        totalLabel.text = "00.00"
-        priceLabel.text = "0.00"
+        if let balanceValue = balance {
+            balanceLabel.text = "$\(balanceValue)"
+        }
+        
+        if let totalValue = totalPrice {
+            totalLabel.text = "$\(totalValue)"
+        }
+        
+        if let priceValue = itemPrice {
+            priceLabel.text = "$\(priceValue)"
+        }
+        
+        if let quantityValue = itemQuantity {
+            quantityLabel.text = "\(quantityValue)"
+        }
     }
     
+    func updateTotalPrice(for item: VendingItem) {
+        let totalPrice = item.price * quantityStepper.value
+        updateDisplayWith(totalPrice: totalPrice)
+    }
+    
+    @IBAction func updateQuantity(_ sender: UIStepper) {
+        let quantity = Int(quantityStepper.value)
+        updateDisplayWith(itemQuantity: quantity)
+        
+        if let currentSelection = currentSelection, let item = vendingMachine.item(forSelection: currentSelection) {
+            updateTotalPrice(for: item)
+        }
+    }
     
     // MARK: UICollectionViewDataSource
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return vendingMaching.selection.count
+        return vendingMachine.selection.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as? VendingItemCell else { fatalError() }
         
-        let item = vendingMaching.selection[indexPath.row]
-        
+        let item = vendingMachine.selection[indexPath.row]
         cell.iconView.image = item.icon()
         
         return cell
@@ -119,11 +140,14 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         updateCell(having: indexPath, selected: true)
         
-        currentSelection = vendingMaching.selection[indexPath.row]
+        quantityStepper.value = 1
+        updateDisplayWith(totalPrice: 0, itemQuantity: 1)
         
-        if let currentSelection = currentSelection, let item = vendingMaching.item(forSelection: currentSelection) {
-            priceLabel.text = "$\(item.price)"
-            totalLabel.text = "$\(item.price * Double(quantity))"
+        currentSelection = vendingMachine.selection[indexPath.row]
+        
+        if let currentSelection = currentSelection, let item = vendingMachine.item(forSelection: currentSelection) {
+            let totalPrice = item.price * quantityStepper.value
+            updateDisplayWith(totalPrice: totalPrice, itemPrice: item.price)
         }
     }
     
